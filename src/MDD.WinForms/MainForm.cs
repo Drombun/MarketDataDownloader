@@ -143,7 +143,7 @@ namespace MDD.WinForms
 
 					cbTimeframe.Items.Clear();
 					cbTimeframe.Items.AddRange(new object[] {"Tick", "Intraday", "Daily", "Weekly", "Monthly"});
-					cbTimeframe.SelectedItem = "Intraday";
+					cbTimeframe.SelectedItem = "Tick";
 					break;
 			}
 
