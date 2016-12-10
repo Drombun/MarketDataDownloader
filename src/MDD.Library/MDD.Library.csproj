@@ -87,6 +87,8 @@
     <Compile Include="Helpers\FileContentHelper.cs" />
     <Compile Include="Helpers\PathHelper.cs" />
     <Compile Include="Helpers\ReverseLineReader .cs" />
+    <Compile Include="Helpers\SemaphoreUtils.cs" />
+    <Compile Include="Helpers\StringExtensions.cs" />
     <Compile Include="Logging\IMyLogger.cs" />
     <Compile Include="Logging\MyLogger.cs" />
     <Compile Include="Logging\TargetRichTextBox.cs" />

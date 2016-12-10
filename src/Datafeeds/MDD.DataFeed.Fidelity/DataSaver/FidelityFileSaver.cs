@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -29,11 +30,11 @@ namespace MDD.DataFeed.Fidelity.DataSaver
 		public async Task StartSavingAsync(Parameters parameters, RequestBase requestFidelity)
 		{
 			var p = (RequestFidelity)requestFidelity;
-			var marketDataList = new ArrayList();
+			var marketDataList = new List<string>();
 
 			try
 			{
-				var lastTimeStamp = base.GetLastTimestampInFile(parameters.StorageFolder, p.CurrentSymbol, FidelityCfg.Delimiter);
+				var lastTimeStamp = await GetLastTimestampInFile(parameters.StorageFolder, p.CurrentSymbol, FidelityCfg.Delimiter);
 
 				while (await DataflowHelper.MarketDataQueue.OutputAvailableAsync(CancelationHelper.TokenSource.Token))
 				{
@@ -63,7 +64,7 @@ namespace MDD.DataFeed.Fidelity.DataSaver
 
 							if (marketDataList.Count == Cfg.StreamWriterSavingInterval())
 							{
-								base.WriteToFile(marketDataList, parameters.StorageFolder, p.CurrentSymbol);
+								await WriteToFile(marketDataList, parameters.StorageFolder, p.CurrentSymbol);
 								marketDataList.Clear();
 							}
 						}
@@ -78,11 +79,11 @@ namespace MDD.DataFeed.Fidelity.DataSaver
 			}
 			finally
 			{
-				base.WriteToFile(marketDataList, parameters.StorageFolder, p.CurrentSymbol);
+				await WriteToFile(marketDataList, parameters.StorageFolder, p.CurrentSymbol);
 			}
 		}
 
-		private void AddToArray(Parameters parameters, string dateTime, FidelityMarketData fmd, ArrayList marketDataList)
+		private void AddToArray(Parameters parameters, string dateTime, FidelityMarketData fmd, List<string> marketDataList)
 		{
 			var b = new StringBuilder();
 
