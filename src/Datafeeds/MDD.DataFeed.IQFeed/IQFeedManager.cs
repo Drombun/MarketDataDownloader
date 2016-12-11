@@ -64,16 +64,11 @@ namespace MDD.DataFeed.IQFeed
 
 						DataflowHelper.RearmDataflowQueues();
 
-						var downloadTask = new Task(() => Client.StartDownloadingAsync(request));
-						var parseTask = new Task(() => Parser.StartParsingAsync(requestIQFeed));
-						var saveTask = new Task(() => Saver.StartSavingAsync(programParameters, requestIQFeed));
+						var downloadTask = Task.Run(async () => await Client.StartDownloadingAsync(request));
+						var parseTask = Task.Run(async () => await Parser.StartParsingAsync(requestIQFeed));
+						var saveTask = Task.Run(async () => await Saver.StartSavingAsync(programParameters, requestIQFeed));
 
-						downloadTask.Start();
-						parseTask.Start();
-						saveTask.Start();
-
-						await
-							Task.WhenAll(DataflowHelper.ResponsesQueueCompletion, DataflowHelper.MarketDataQueueCompletion, downloadTask,
+						await Task.WhenAll(DataflowHelper.ResponsesQueueCompletion, DataflowHelper.MarketDataQueueCompletion, downloadTask,
 										 parseTask, saveTask);
 					}
 				}

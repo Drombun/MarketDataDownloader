@@ -1,9 +1,8 @@
 ﻿#region Usings
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
-
 using MDD.Library.Abstraction;
 using MDD.Library.Abstraction.Client;
 using MDD.Library.Abstraction.Manager;
@@ -16,6 +15,7 @@ using MDD.WinForms.Abstraction;
 using MDD.WinForms.Resolver;
 
 using Microsoft.Practices.Unity;
+using Timer = System.Timers.Timer;
 
 #endregion
 
@@ -27,6 +27,8 @@ namespace MDD.WinForms.Presenters
 		private readonly IMainFormView _view;
 		private IDataFeedManager _dataFeedManager;
 		private Timer _updateTimer;
+
+	    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
 		public MainFormPresenter(IMainFormView view)
 		{
@@ -120,7 +122,7 @@ namespace MDD.WinForms.Presenters
 						{
 							_updateTimer.Interval = Cfg.UpdateIntervalTick();
 						}
-						_updateTimer.Elapsed += (obj, eventArgs) => DownloadIQFeedRealTime(request, programParameters);
+				        _updateTimer.Elapsed += (obj, eventArgs) => DownloadIqFeedRealTime(request, programParameters);
 						break;
 				}
 
@@ -132,27 +134,27 @@ namespace MDD.WinForms.Presenters
 			}
 		}
 
-		private void DownloadIQFeedRealTime(RequestBase request, Parameters programParameters)
+		private async void DownloadIqFeedRealTime(RequestBase request, Parameters programParameters)
 		{
-			lock (request)
+			using(await _semaphore.LockAsync())
 			{
 				request.TimeFrameType = "Interval";
 				request.BeginDateTime = DateTimeHelper.SubstractOneMinute(request.EndDateTime, false);
 				request.EndDateTime = DateTimeHelper.SubstractOneMinute(DateTimeHelper.ConvertLocalToEST(DateTime.Now), false);
 
-				_dataFeedManager.DownloadMarketData(request, programParameters);
+				await _dataFeedManager.DownloadMarketData(request, programParameters);
 			}
 		}
 
-		private void DownloadFidelityRealTime(RequestBase request, Parameters programParameters)
+		private async void DownloadFidelityRealTime(RequestBase request, Parameters programParameters)
 		{
-			lock (request)
-			{
+            using (await _semaphore.LockAsync())
+            {
 				request.TimeFrameType = "Interval";
 				request.BeginDateTime = DateTimeHelper.SubstractOneMinute(request.EndDateTime, true);
 				request.EndDateTime = DateTimeHelper.SubstractOneMinute(DateTimeHelper.ConvertLocalToEST(DateTime.Now), true);
 
-				_dataFeedManager.DownloadMarketData(request, programParameters);
+                await _dataFeedManager.DownloadMarketData(request, programParameters);
 			}
 		}
 	}
